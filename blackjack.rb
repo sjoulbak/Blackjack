@@ -33,7 +33,7 @@ class Deck #Dit is het kaarten gedeelte
 			end
 			return @waarde
 		elsif @waarde + 2 > 10
-				return 10
+			return 10
 		else
 			return @waarde + 2
 		end
