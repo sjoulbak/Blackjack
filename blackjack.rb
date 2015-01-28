@@ -1,75 +1,75 @@
-class Deck #Dit is het kaarten gedeelte
+require './deck'
+require './player'
+
+class Blackjack
 	def initialize
-		@type = [2,3,4,5,6,7,8,9,10,'Boer','Konining','Koning','A\'s']
-		@kaarten = [@type.clone, @type.clone, @type.clone, @type.clone]
-		@soorten = ['Harten', 'Klaver', 'Schoppen', 'Ruiten']
-	end
-	def showDeck
-		puts @kaarten
-	end
-	def getCard
-		@typeKaart = nil
-		while @typeKaart == nil
-			i = rand(0..3)
-			j = rand(0..12)
-			@typeKaart = @kaarten[i][j]
+		@a = 6
+		@deck = Deck.new
+		while @a.to_i > 5
+			system'cls'
+			puts 'Met hoeveel spelers wil je spelen? (Max 5 spelers)'
+			@a = gets.chomp.to_i
 		end
-		@kaarten.each_with_index do |item, a|
-			if a == i
-				@soort = @soorten[a]
+		@speler = []
+		(1..@a).to_a.each do |i|
+			naam = nil
+			while naam == nil
+				#system'cls'
+				puts "Hoe heet speler #{i}?"
+				naam = gets.chomp
 			end
-		end
-		@waardeKaart = value j, @soort
-		@kaarten[i][j] = nil
-		return [@typeKaart, @soort, @waardeKaart]
+			@speler[i] = Player.new(@deck, naam)
+			@speler[i].add_card && @speler[i].add_card
+		end		
+		@dealer = Player.new(@deck, 'Dealer')
+		@dealer.add_card && @dealer.add_card
 	end
-	def value j, soort
-		if j == 12
-			while true
-				system'cls' 
-				puts "Hoeveel is de #{soort} A waard, 1 of 11?"
-				j = gets.chomp.to_i
-				if j == 1 || j == 11
-					return j
+	def start
+		@stat = @a + 1
+		while @stat > 0
+			(1..@a).to_a.each do |i|
+				if @speler[i].get_status == true
+					while true
+						system'cls'
+						@speler[i].show_cards
+						puts
+						puts 'Wil je nog een kaart (e)rbij of wil je (s)toppen?'
+						keuze = gets.chomp
+						if keuze == 'e'
+							@speler[i].add_card
+							if @speler[i].get_points > 21
+								puts
+								puts "Je bent af."
+								sleep(3)
+								@speler[i].set_status
+								@stat -= 1
+								break
+							end
+							system'cls'
+						elsif keuze == 's'
+							@speler[i].set_status
+							@stat -= 1
+							system'cls'
+							break
+						end
+					end
 				end
 			end
-		elsif j + 2 > 10
-			return 10
-		else
-			return j + 2
+			if @dealer.get_status == true
+				@dealer.add_card
+				puts 'yes'
+				if check_dealer == true
+					@dealer.show_cards
+					@dealer.set_status
+					@stat -= 1
+				end
+			end
 		end
 	end
-end
-
-class Speler
-	def initialize(deck, naam)
-		@naam = naam
-		@deck = deck
-		@kaarten = []
-		@punten = 0
-	end
-
-	def showCards #Dit gaat waarschijnlijk weg! :)
-		system'cls'
-		puts "#{@naam} heeft de volgende kaarten:"
-		@kaarten.each do |type, soort, waarde|
-			puts " - Een #{soort} #{type.to_s} met een waarde #{waarde}"
-		end
-		puts 
-		puts "Een totaal van: #{@punten}"
-	end
-
-	def addCard
-		@nieuweKaart = @deck.getCard
-		@kaarten.push(@nieuweKaart)
-		@punten += @nieuweKaart[2]
-		return @nieuweKaart
+	def check_dealer
+		@dealer.get_points > 21
 	end
 end
 
-deck1 = Deck.new
-speler1 = Speler.new(deck1, 'Remco')
-52.times do
-	speler1.addCard
-end
-speler1.showCards
+game = Blackjack.new
+game.start
